@@ -1,0 +1,13 @@
+[submodule "Noctis/vendor/imgui"]
+	path = Noctis/vendor/imgui
+	url = https://github.com/kbraggster/imgui.git
+	branch = docking
+[submodule "Noctis/vendor/glfw"]
+	path = Noctis/vendor/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "Noctis/vendor/spdlog"]
+	path = Noctis/vendor/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "Noctis/vendor/shaderc"]
+	path = Noctis/vendor/shaderc
+	url = https://github.com/google/shaderc.git
