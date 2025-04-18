@@ -38,8 +38,8 @@ void VulkanContext::Init()
 
     m_Device.reset(new VulkanDevice(s_Instance, m_Surface));
 
-    // m_Swapchain.reset(new VulkanSwapchain(*m_Device, m_Surface));
-    // m_Swapchain->CreateSwapchain(2560, 1440);
+    m_Swapchain.reset(new VulkanSwapchain(*m_Device, m_Surface));
+    m_Swapchain->CreateSwapchain(1280, 720);
 }
 
 VkInstance VulkanContext::CreateInstance()

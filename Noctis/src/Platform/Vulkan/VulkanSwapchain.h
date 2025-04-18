@@ -28,7 +28,7 @@ class VulkanSwapchain
     VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, uint32_t width, uint32_t height);
 
   private:
-    VulkanDevice m_Device;
+    const VulkanDevice& m_Device;
     VkSurfaceKHR m_Surface;
 
     VkSwapchainKHR m_Swapchain = VK_NULL_HANDLE;
