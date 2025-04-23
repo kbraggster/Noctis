@@ -51,7 +51,7 @@ VkInstance VulkanContext::CreateInstance()
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName        = "Noctis";
     appInfo.engineVersion      = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion         = VK_API_VERSION_1_0;
+    appInfo.apiVersion         = VK_API_VERSION_1_2;
 
     // Vulkan instance info
     VkInstanceCreateInfo createInfo{};
