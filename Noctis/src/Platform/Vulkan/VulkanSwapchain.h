@@ -15,6 +15,12 @@ class VulkanSwapchain
 
     void CreateSwapchain(uint32_t width, uint32_t height);
 
+    VkSwapchainKHR& GetVkSwapchain() { return m_Swapchain; }
+    const std::vector<VkImage>& GetVkSwapchainImages() const { return m_SwapchainImages; }
+    const std::vector<VkImageView>& GetVkSwapchainImageViews() const { return m_SwapchainImageViews; }
+    VkFormat GetVkSwapchainImageFormat() const { return m_SwapchainImageFormat; }
+    VkExtent2D GetVkSwapchainExtent() const { return m_SwapchainExtent; }
+
   private:
     struct SwapchainSupportDetails
     {

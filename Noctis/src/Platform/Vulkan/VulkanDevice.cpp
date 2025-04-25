@@ -7,14 +7,10 @@ VulkanDevice::VulkanDevice(VkInstance& instance, VkSurfaceKHR& surface) : m_Inst
 {
     PickPhysicalDevice();
     CreateLogicalDevice();
-    CreateCommandPool();
 }
 
 VulkanDevice::~VulkanDevice()
 {
-    vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
-    m_CommandPool = VK_NULL_HANDLE;
-
     vkDestroyDevice(m_Device, nullptr);
     m_Device = VK_NULL_HANDLE;
 }
@@ -96,19 +92,6 @@ void VulkanDevice::CreateLogicalDevice()
     vkGetDeviceQueue(m_Device, indices.PresentFamily, 0, &m_PresentQueue);
 
     NOC_CORE_INFO("Logical device created");
-}
-
-void VulkanDevice::CreateCommandPool()
-{
-    QueueFamilyIndices indices = FindPhysicalQueueFamilies();
-
-    VkCommandPoolCreateInfo createInfo = {};
-    createInfo.sType                   = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    createInfo.queueFamilyIndex        = indices.GraphicsFamily;
-    createInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
-    VkResult result = vkCreateCommandPool(m_Device, &createInfo, nullptr, &m_CommandPool);
-    NOC_CORE_ASSERT(result == VK_SUCCESS, "Failed to create command pool!");
 }
 
 bool VulkanDevice::IsDeviceSuitable(VkPhysicalDevice device)

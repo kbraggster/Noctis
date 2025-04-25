@@ -28,7 +28,6 @@ class VulkanDevice
 
   private:
     void CreateLogicalDevice();
-    void CreateCommandPool();
 
     void PickPhysicalDevice();
     bool IsDeviceSuitable(VkPhysicalDevice device);
@@ -44,7 +43,6 @@ class VulkanDevice
     VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
 
     VkSurfaceKHR m_Surface;
-    VkCommandPool m_CommandPool;
     VkQueue m_GraphicsQueue;
     VkQueue m_PresentQueue;
     QueueFamilyIndices m_QueueFamilyIndices;
