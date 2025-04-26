@@ -28,6 +28,8 @@ void Application::Run()
             {
                 for (Layer* layer : m_LayerStack)
                     layer->OnUpdate();
+
+                Renderer::Render();
             }
 
             // m_ImGuiLayer->Begin();

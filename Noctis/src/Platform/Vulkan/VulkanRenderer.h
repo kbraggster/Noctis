@@ -20,6 +20,9 @@ class VulkanRenderer : public RendererAPI
     void CreateCommandBuffers();
     void CreateSyncObjects();
 
+    void CreateRenderPass();
+    void CreateFramebuffers();
+
   private:
     Ref<VulkanContext> m_Context;
     VkCommandPool m_CommandPool = VK_NULL_HANDLE;
@@ -32,6 +35,10 @@ class VulkanRenderer : public RendererAPI
 
     static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
     uint32_t m_CurrentFrame                   = 0;
+    uint32_t m_CurrentImageIndex              = 0;
+
+    VkRenderPass m_RenderPass;
+    std::vector<VkFramebuffer> m_Framebuffers;
 };
 
 } // namespace Noctis

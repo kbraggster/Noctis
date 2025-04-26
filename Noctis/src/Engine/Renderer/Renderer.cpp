@@ -30,6 +30,13 @@ void Renderer::Init()
     s_RendererAPI->Init();
 }
 
+void Renderer::Render()
+{
+    s_RendererAPI->BeginFrame();
+
+    s_RendererAPI->EndFrame();
+}
+
 Ref<RendererContext> Renderer::GetContext()
 {
     return Application::Get().GetWindow().GetRenderContext();

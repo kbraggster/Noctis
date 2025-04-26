@@ -13,6 +13,9 @@ void VulkanRenderer::Init()
     CreateCommandBuffers();
     CreateSyncObjects();
 
+    CreateRenderPass();
+    CreateFramebuffers();
+
     NOC_CORE_INFO("Vulkan Renderer API initialized successfully");
 }
 
@@ -82,6 +85,56 @@ void VulkanRenderer::CreateSyncObjects()
     }
 }
 
+void VulkanRenderer::CreateRenderPass()
+{
+    VkAttachmentDescription attachment{};
+    attachment.loadOp        = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    attachment.finalLayout   = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    attachment.storeOp       = VK_ATTACHMENT_STORE_OP_STORE;
+    attachment.samples       = VK_SAMPLE_COUNT_1_BIT;
+    attachment.format        = m_Context->GetSwapchain()->GetVkSwapchainImageFormat();
+
+    VkAttachmentReference colorAttachmentReference{};
+    colorAttachmentReference.attachment = 0;
+    colorAttachmentReference.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDescription subpass{};
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments    = &colorAttachmentReference;
+
+    VkRenderPassCreateInfo renderPassInfo{};
+    renderPassInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassInfo.attachmentCount = 1;
+    renderPassInfo.pAttachments    = &attachment;
+    renderPassInfo.subpassCount    = 1;
+    renderPassInfo.pSubpasses      = &subpass;
+
+    VK_CHECK_RESULT(vkCreateRenderPass(m_Context->GetDevice()->GetVkDevice(), &renderPassInfo, nullptr, &m_RenderPass))
+}
+
+void VulkanRenderer::CreateFramebuffers()
+{
+    auto swapChainImageCount = m_Context->GetSwapchain()->GetVkSwapchainImages().size();
+    m_Framebuffers.resize(swapChainImageCount);
+
+    VkFramebufferCreateInfo framebufferInfo{};
+    framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    framebufferInfo.width           = m_Context->GetSwapchain()->GetVkSwapchainExtent().width;
+    framebufferInfo.height          = m_Context->GetSwapchain()->GetVkSwapchainExtent().height;
+    framebufferInfo.renderPass      = m_RenderPass;
+    framebufferInfo.layers          = 1;
+    framebufferInfo.attachmentCount = 1;
+
+    for (uint32_t i = 0; i < m_Context->GetSwapchain()->GetVkSwapchainImages().size(); i++)
+    {
+        framebufferInfo.pAttachments = &m_Context->GetSwapchain()->GetVkSwapchainImageViews()[i];
+
+        VK_CHECK_RESULT(
+            vkCreateFramebuffer(m_Context->GetDevice()->GetVkDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]))
+    }
+}
+
 void VulkanRenderer::BeginFrame()
 {
     auto device    = m_Context->GetDevice()->GetVkDevice();
@@ -89,9 +142,8 @@ void VulkanRenderer::BeginFrame()
 
     vkWaitForFences(device, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
 
-    uint32_t imageIndex;
     VK_CHECK_RESULT(vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame],
-                                          VK_NULL_HANDLE, &imageIndex));
+                                          VK_NULL_HANDLE, &m_CurrentImageIndex));
 
     vkResetFences(device, 1, &m_InFlightFences[m_CurrentFrame]);
 
@@ -101,10 +153,26 @@ void VulkanRenderer::BeginFrame()
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
     VK_CHECK_RESULT(vkBeginCommandBuffer(m_CommandBuffers[m_CurrentFrame], &beginInfo));
+
+    // Begin render pass
+    VkRenderPassBeginInfo renderPassInfo{};
+    renderPassInfo.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass        = m_RenderPass;
+    renderPassInfo.framebuffer       = m_Framebuffers[m_CurrentImageIndex];
+    renderPassInfo.renderArea.extent = m_Context->GetSwapchain()->GetVkSwapchainExtent();
+
+    VkClearValue clearColor{};
+    clearColor.color               = {1.0f, 0.0f, 1.0f, 1.0f};
+    renderPassInfo.clearValueCount = 1;
+    renderPassInfo.pClearValues    = &clearColor;
+
+    vkCmdBeginRenderPass(m_CommandBuffers[m_CurrentFrame], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void VulkanRenderer::EndFrame()
 {
+    vkCmdEndRenderPass(m_CommandBuffers[m_CurrentFrame]);
+
     VK_CHECK_RESULT(vkEndCommandBuffer(m_CommandBuffers[m_CurrentFrame]));
 
     VkSubmitInfo submitInfo{};
@@ -134,7 +202,7 @@ void VulkanRenderer::EndFrame()
     VkSwapchainKHR swapChains[] = {m_Context->GetSwapchain()->GetVkSwapchain()};
     presentInfo.swapchainCount  = 1;
     presentInfo.pSwapchains     = swapChains;
-    presentInfo.pImageIndices   = &m_CurrentFrame;
+    presentInfo.pImageIndices   = &m_CurrentImageIndex;
 
     VK_CHECK_RESULT(vkQueuePresentKHR(m_Context->GetDevice()->GetVkPresentQueue(), &presentInfo));
 
